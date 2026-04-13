@@ -235,11 +235,11 @@ All experiments were conducted on a single-node system to isolate index behavior
 
 **Hardware configuration:**
 
-- CPU: Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz
+- CPU: AMD EPYC 9454P CPU @ 2.70GHZ
 
-- Memory: Speed: 3200 MT/s, Type: DDR4, Size: 32 GB
+- Memory: Speed: 3200 MT/s, Type: DDR4, Size: 384 GB
 
-- Disk: 500 GB NVMe SSD
+- Disk: KIOXIA CM7 7.68 TB NVMe SSD
 
 **Index Build Parameters**
 
@@ -247,8 +247,8 @@ All experiments were conducted on a single-node system to isolate index behavior
 {
   "max_degree": 48,
   "search_list_size": 100,
-  "inline_pq": 0/12/24/48,  // AiSAQ only
-  "pq_code_budget_gb_ratio": 0.125,
+  "inline_pq": 0/20/38/48,  // AiSAQ only
+  "pq_code_budget_gb_ratio": 0.125/0.04167, //SIFT 128:0.125 / Cohere 768:0.04167
   "search_cache_budget_gb_ratio": 0.0,
   "build_dram_budget_gb": 32.0
 }
@@ -258,9 +258,11 @@ All experiments were conducted on a single-node system to isolate index behavior
 
 ```
 {
-  "k": 100,
-  "search_list_size": 100,
-  "beamwidth": 8
+  "k": 10,
+  "search_list": 13/15/16/18, // SIFT/Cohere:13/16 for Diskann and AiSAQ with inline_pq=48; 15/18 for AiSAQ with inline_pq < 48
+  "beamwidth": 4
+  "vectors_beamwidth": 2. // only for AiSAQ with inline_pq < 48
+  "num_search_threads":12
 }
 ```
 
@@ -301,25 +303,25 @@ On the SIFT128D dataset, AISAQ can match DISKANN’s performance when all PQ dat
 
 Because the entire node fits within one page, only one I/O is needed per access, and AISAQ avoids random reads of external PQ data.
 
-However, when only part of the PQ data is inlined, the remaining PQ codes must be fetched from elsewhere on disk. This introduces additional random I/O operations, which sharply increase IOPS demand and lead to significant performance drops. 
+However, when only part of the PQ data is inlined, the remaining PQ codes must be fetched from elsewhere on disk (the inline_pq parameter was set to optimize SSD page utilization, for example, inline_pq=20 enables fitting two nodes withing a single 4KB page). This introduces additional random I/O operations, which sharply increase IOPS demand and lead to significant performance drops. 
 
 **Cohere768D Dataset**
 
-ON the Cohere768D dataset, AISAQ performs worse than DISKANN. The reason is that a 768-dimensional vector simply does not fit into one 4 KB SSD page:
+ON the Cohere768D dataset, AISAQ performs ~8% lower than DISKANN. The reason is that a 768-dimensional vector simply does not fit into one 4 KB SSD page:
 
 - Full vector: 3072B
 
 - Neighbor list: 48 × 4 + 4 = 196B
 
-- PQ codes of neighbors: 48 × (3072B × 0.125) ≈ 18432B
+- PQ codes of neighbors: 48 × (3072B × 0.04167) ≈ 6,144B
 
-- Total: 21,700 B (≈ 6 pages)
+- Total: 9,412 B (≈ 3 pages)
 
 In this case, even if all PQ codes are inlined, each node spans multiple pages. While the number of I/O operations stays consistent, each I/O must transfer far more data, consuming SSD bandwidth much faster. Once bandwidth becomes the limiting factor, AISAQ cannot keep pace with DISKANN—especially on high-dimensional workloads where per-node data footprints grow quickly.
 
 **Note:** 
 
-AISAQ’s storage layout typically increases the on-disk index size by **4× to 6×**. This is a deliberate trade-off: full vectors, neighbor lists, and PQ codes are colocated on disk to enable efficient single-page access during search. While this increases SSD usage, disk capacity is significantly cheaper than DRAM and scales more easily at large data volumes.
+AISAQ’s storage layout typically increases the on-disk index size by **3× to 5×**. This is a deliberate trade-off: full vectors, neighbor lists, and PQ codes are colocated on disk to enable efficient single-page access during search. While this increases SSD usage, disk capacity is significantly cheaper than DRAM and scales more easily at large data volumes.
 
 In practice, users can tune this trade-off by adjusting `INLINE_PQ` and PQ compression ratios. These parameters make it possible to balance search performance, disk footprint, and overall system cost based on workload requirements, rather than being constrained by fixed memory limits.
 
