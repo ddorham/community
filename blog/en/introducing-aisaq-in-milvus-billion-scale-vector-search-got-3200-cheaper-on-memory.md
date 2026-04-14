@@ -281,11 +281,11 @@ These datasets reflect two distinct real-world scenarios: compact vision feature
 
 **Sift128D1M (Full Vector ~488MB)**
 
-![](https://assets.zilliz.com/sift.png)
+![SIFT recall vs latency chart](./assets/sift.png)
 
 **Cohere768D1M (Full Vector ~2930MB)**
 
-![](https://assets.zilliz.com/cohere.png)
+![Choere recall vs latency chart](./assets/cohere.png)
 
 ### Analysis
 
