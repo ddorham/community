@@ -281,11 +281,11 @@ These datasets reflect two distinct real-world scenarios: compact vision feature
 
 **Sift128D1M (Full Vector ~488MB)**
 
-![](https://assets.zilliz.com/aisaq_53da7b566a.png)
+![](https://assets.zilliz.com/sift.png)
 
 **Cohere768D1M (Full Vector ~2930MB)**
 
-![](https://assets.zilliz.com/Cohere768_D1_M_8dfa3dffb7.png)
+![](https://assets.zilliz.com/cohere.png)
 
 ### Analysis
 
