@@ -235,11 +235,11 @@ All experiments were conducted on a single-node system to isolate index behavior
 
 **Hardware configuration:**
 
-- CPU: AMD(R) EPYC 9454P CPU @ 2.70GHz
+- CPU: AMD® EPYC® 9454P CPU @ 2.70GHz
 
 - Memory: Speed: 3200 MT/s, Type: DDR4, Size: 384 GB
 
-- Disk: KIOXIA CM7 7.6 TB NVMe SSD
+- Disk: KIOXIA CM7 7.68 TB NVMe SSD
 
 **Index Build Parameters**
 
@@ -259,7 +259,7 @@ All experiments were conducted on a single-node system to isolate index behavior
 ```
 {
   "k": 10,
-  "search_list_size": 13/15/16/18, // SIFT/Cohere:13/16 for DiskANNand AiSAQ with inline_pq=48; 15/18 for AiSAQ with inline_pq<48
+  "search_list_size": 13/15/16/18, // SIFT/Cohere:13/16 for DiskANN and AiSAQ with inline_pq=48; 15/18 for AiSAQ with inline_pq<48
   "beamwidth": 4
   "vectors_beamwidth": 2 // only for AiSAQ with inline_pq<48
   "num_search_threads": 12
@@ -315,7 +315,7 @@ ON the Cohere768D dataset, AISAQ performs ~8% lower than DISKANN. The reason is 
 
 - PQ codes of neighbors: 48 × (3072B × 0.04167) ≈ 6,144B
 
-- Total: 9,412 B (≈ 3 pages)
+- Total: 9,412B (≈ 3 pages)
 
 In this case, even if all PQ codes are inlined, each node spans multiple pages. While the number of I/O operations stays consistent, each I/O must transfer far more data, consuming SSD bandwidth much faster. Once bandwidth becomes the limiting factor, AISAQ cannot keep pace with DISKANN—especially on high-dimensional workloads where per-node data footprints grow quickly.
 
